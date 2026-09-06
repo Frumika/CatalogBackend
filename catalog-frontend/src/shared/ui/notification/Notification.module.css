@@ -2,7 +2,8 @@
     position: relative;
     background-color: var(--bgMain);
     border-radius: 18px;
-    padding: 26px;
+    padding: 24px;
+    gap: 4px;
     box-shadow: 0 0 4px 1px var(--graphicNeutral);
 
     width: 100%;
@@ -15,12 +16,13 @@
 }
 
 .header {
-    margin-bottom: 8px;
+
 }
 
 .type {
     font-weight: 500;
     font-size: 16px;
+    color: var(--textPrimary);
 }
 
 .content {
@@ -31,6 +33,7 @@
 .message {
     font-weight: 400;
     font-size: 14px;
+    color: var(--textSecondary);
 }
 
 .closeButton {

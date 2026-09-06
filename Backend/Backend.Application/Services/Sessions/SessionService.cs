@@ -82,16 +82,16 @@ public class SessionService
                 user = new User
                 {
                     Email = emailLower,
-                    Login = $"User_{Guid.NewGuid():N}".Substring(0, 8), // Чуть более лаконичный Guid
+                    Login = $"User_{Guid.NewGuid():N}".Substring(0, 8),
                     CreatedAt = currentTime,
                     Cart = new Cart(),
                     Wishlist = new Wishlist()
                 };
                 _dbContext.Users.Add(user);
+                await _dbContext.SaveChangesAsync();
             }
 
             user.LastLoginAt = currentTime;
-
 
             string accessToken = _tokenGenerator.GenerateAccessToken(user);
             RefreshToken refreshToken = _tokenGenerator.GenerateRefreshToken(user);
@@ -100,11 +100,61 @@ public class SessionService
             await _dbContext.SaveChangesAsync();
 
             return Response.Success(
-                new SessionDto()
+                new SessionDto
                 {
                     AccessToken = accessToken,
                     RefreshToken = refreshToken.Token,
-                }, "User has been logged in");
+                }, "User has been logged in"
+            );
+        }
+        catch (Exception)
+        {
+            return Response.Fail(new UnknownError(), "Internal server error");
+        }
+    }
+
+    public async Task<Response> DemoEntrance(DemoEntranceRequest request)
+    {
+        ValidationResult result = request.Validate();
+        if (!result.IsValid) return Response.Fail(new BadRequest(), result.Message);
+
+        try
+        {
+            string emailLower = request.Email.ToLowerInvariant().Trim();
+
+            User? user = await _dbContext.Users
+                .FirstOrDefaultAsync(u => u.Email == emailLower);
+            DateTime currentTime = DateTime.UtcNow;
+            if (user == null)
+            {
+                user = new User
+                {
+                    Email = emailLower,
+                    Login = $"User_{Guid.NewGuid():N}".Substring(0, 8),
+                    CreatedAt = currentTime,
+                    Cart = new Cart(),
+                    Wishlist = new Wishlist()
+                };
+                _dbContext.Users.Add(user);
+                await _dbContext.SaveChangesAsync();
+            }
+
+            user.LastLoginAt = currentTime;
+            
+
+            string accessToken = _tokenGenerator.GenerateAccessToken(user);
+            RefreshToken refreshToken = _tokenGenerator.GenerateRefreshToken(user);
+
+            _dbContext.RefreshTokens.Add(refreshToken);
+            await _dbContext.SaveChangesAsync();
+
+            return Response.Success(
+                new SessionDto
+                {
+                    AccessToken = accessToken,
+                    RefreshToken = refreshToken.Token,
+                }, "User has been logged in"
+            );
         }
         catch (Exception)
         {

@@ -1,0 +1,39 @@
+.popover {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+
+    background-color: var(--bgMain);
+    box-shadow: 0 0 4px 1px var(--graphicNeutralDark);
+    border-radius: 18px;
+    padding: 24px;
+
+    width: 320px;
+
+    gap: 6px;
+}
+
+.header {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--textPrimary);
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.text {
+    font-weight: 400;
+    font-size: 14px;
+    color: var(--textSecondary);
+
+    text-wrap: wrap;
+}
+
+.textBold{
+    font-weight: 500;
+}

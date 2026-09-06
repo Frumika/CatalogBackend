@@ -25,6 +25,17 @@ export const sessionApi = {
         return response.data;
     },
 
+    demo: async (email: string): Promise<Session> => {
+        const response = await apiClient
+            .post<Session>(`${ENDPOINT}/demo`, {email}, false);
+
+        if (!response.ok) {
+            throw new ApiError(response.code, response.message);
+        }
+
+        return response.data;
+    },
+
     logout: async (refreshToken: string): Promise<void> => {
         const response = await apiClient
             .delete<void>(`${ENDPOINT}/logout`, {refreshToken});

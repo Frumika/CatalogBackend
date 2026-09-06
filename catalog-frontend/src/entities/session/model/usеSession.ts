@@ -43,6 +43,20 @@ export const useSession = () => {
         }
     };
 
+    const demo = async (email: string): Promise<void> => {
+        setLoading(true);
+        try {
+            const tokens = await sessionApi.demo(email);
+            setTokens(tokens.accessToken, tokens.refreshToken);
+            setCodeSend(false);
+        } catch (err) {
+            const apiError: ApiError = toApiError(err);
+            notify("error", apiError.message || "Не удалось осуществить демо-вход");
+        } finally {
+            setLoading(false);
+        }
+    }
+
     const logout = async (): Promise<void> => {
         const refreshToken = tokenLocalStorage.getRefreshToken();
         if (!refreshToken) {
@@ -82,6 +96,7 @@ export const useSession = () => {
         isLoading,
         sendCode,
         verify,
+        demo,
         logout,
         logoutAll,
     };

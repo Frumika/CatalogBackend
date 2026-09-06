@@ -33,6 +33,13 @@ public class SessionController : ControllerBase
         return response.ToHttpResponse();
     }
 
+    [HttpPost("demo")]
+    public async Task<IActionResult> DemoEntrance([FromBody] DemoEntranceRequest request)
+    {
+        var response = await _sessionService.DemoEntrance(request);
+        return response.ToHttpResponse();
+    }
+
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshAccessToken([FromBody] RefreshRequest request)
     {

@@ -4,6 +4,8 @@ import {Button} from "@/shared/ui/button";
 import {Input} from "@/shared/ui/input";
 import {useState} from "react";
 import {useSession} from "@/entities/session";
+import {DemoButton} from "@/features/auth/ui/demo-button/DemoButton.tsx";
+import {useNotify} from "@/shared/lib";
 
 
 interface AuthModalProps {
@@ -19,13 +21,24 @@ export const AuthModal = (
 ) => {
     const [email, setEmail] = useState("");
     const [code, setCode] = useState("");
-    const {isCodeSend, sendCode, verify} = useSession();
+    const {isCodeSend, sendCode, verify, demo} = useSession();
+    const notify = useNotify();
 
-    const handleSendCode = () => sendCode?.(email);
-    const handleVerify = () => {
-        verify?.(email, code);
+
+    const handleSendCode = async () => {
+        await sendCode(email);
+    };
+
+    const handleVerify = async () => {
+        await verify(email, code);
         onClose?.();
-    }
+    };
+
+    const handleDemoEntrance = async () => {
+        await demo(email);
+        onClose?.();
+    };
+
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} className={styles.authModal}>
@@ -77,11 +90,17 @@ export const AuthModal = (
                     </>
                 ) : (
                     <>
+                        <DemoButton onClick={handleDemoEntrance}/>
+
                         <Button variant="primary" size="large" fullWidth onClick={handleSendCode}>
                             Отправить код
                         </Button>
 
-                        <Button variant="secondaryGhost" size="small">
+                        <Button
+                            variant="secondaryGhost"
+                            size="small"
+                            onClick={() => notify("warning", "Функционал восстановления и помощи в доступе пока не реализован")}
+                        >
                             Не могу войти
                         </Button>
                     </>

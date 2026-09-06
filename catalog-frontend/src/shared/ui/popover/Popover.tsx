@@ -8,7 +8,7 @@ type Position = { top: number; left: number; width?: number } | null;
 
 interface PopoverProps {
     isOpen: boolean;
-    onClose: () => void;
+    onClose?: () => void;
     anchorRef: RefObject<HTMLElement | null>;
     children: ReactNode;
     className?: string;
@@ -57,7 +57,7 @@ export const Popover = (
             const target = event.target as Node;
             if (popoverRef.current?.contains(target)) return;
             if (anchorRef.current?.contains(target)) return;
-            onClose();
+            onClose?.();
         };
 
         document.addEventListener('mousedown', handleOutsideClick);
@@ -67,7 +67,7 @@ export const Popover = (
     useEffect(() => {
         if (!isOpen) return;
 
-        const handleClose = () => onClose();
+        const handleClose = () => onClose?.();
         window.addEventListener('scroll', handleClose, true);
         window.addEventListener('resize', handleClose);
 
