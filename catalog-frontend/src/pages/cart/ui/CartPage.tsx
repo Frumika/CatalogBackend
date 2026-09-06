@@ -27,6 +27,8 @@ export const CartPage = () => {
         if (!pickupPoint) return;
 
         const createdOrder = await makeOrder(productIds, pickupPoint.id);
+        if (!createdOrder) return;
+
         setActiveOrder(createdOrder);
 
         navigate('/checkout');

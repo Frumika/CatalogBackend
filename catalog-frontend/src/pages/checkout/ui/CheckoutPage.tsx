@@ -1,8 +1,6 @@
 import styles from "./CheckoutPage.module.css";
 import {type ExtendedOrder, type OrderPositionGroup, useGetCheckoutOrderId, useOrderActions} from "@/entities/order";
-import {useEffect, useState} from "react";
-import {ApiError, toApiError} from "@/shared/api";
-import {Footer} from "@/widgets/footer";
+import {useEffect, useState} from "react";import {Footer} from "@/widgets/footer";
 import {CheckoutList} from "@/widgets/checkout-list";
 import {ContentContainer} from "@/shared/ui/content-container";
 import {CheckoutSummary} from "@/widgets/checkout-summary";
@@ -17,7 +15,6 @@ import {useNavigate} from "react-router-dom";
 export const CheckoutPage = () => {
     const activeOrderId = useGetCheckoutOrderId();
     const [order, setOrder] = useState<ExtendedOrder | null>(null);
-    const [error, setError] = useState<ApiError | null>(null);
     const {getOrderById, payOrder} = useOrderActions();
     const [selectedGroup, setSelectedGroup] = useState<OrderPositionGroup | null>(null);
     const {isOpen, open, close} = useDisclosure();
@@ -31,8 +28,7 @@ export const CheckoutPage = () => {
         }
 
         getOrderById(activeOrderId)
-            .then(order => setOrder(order))
-            .catch((error) => setError(toApiError(error)));
+            .then(order => setOrder(order || null));
 
     }, [activeOrderId]);
 

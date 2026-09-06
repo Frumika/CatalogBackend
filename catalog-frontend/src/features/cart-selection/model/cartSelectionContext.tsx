@@ -34,6 +34,7 @@ export const useCartSelectionContext = () => {
 
     if (!context) {
         notify("error", "Что-то пошло не так");
+        throw new Error("useCartSelectionContext must be used within CartSelectionProvider");
     }
     return context;
 };
