@@ -24,6 +24,7 @@
 
     <ItemGroup>
       <Folder Include="DataAccess\" />
+      <Folder Include="DataAccess\Migrations\" />
       <Folder Include="Services\Users\Requests\" />
     </ItemGroup>
 

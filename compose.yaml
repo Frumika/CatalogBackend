@@ -43,6 +43,7 @@
     networks:
       - app-network
     volumes:
+      - ./Infrastructure/Postgres/init:/docker-entrypoint-initdb.d
       - catalog-postgres-data:/var/lib/postgresql/data
   
   redis:

@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Backend.Application.DataAccess.Migrations
 {
     [DbContext(typeof(MainDbContext))]
-    [Migration("20260707194515_ChangeUser")]
-    partial class ChangeUser
+    [Migration("20260906150512_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -46,7 +46,7 @@ namespace Backend.Application.DataAccess.Migrations
                     b.ToTable("carts", (string)null);
                 });
 
-            modelBuilder.Entity("Backend.Domain.Models.CartItem", b =>
+            modelBuilder.Entity("Backend.Domain.Models.CartPosition", b =>
                 {
                     b.Property<int>("CartId")
                         .HasColumnType("integer")
@@ -70,7 +70,7 @@ namespace Backend.Application.DataAccess.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("cart_items", (string)null);
+                    b.ToTable("cart_positions", (string)null);
                 });
 
             modelBuilder.Entity("Backend.Domain.Models.Category", b =>
@@ -117,21 +117,23 @@ namespace Backend.Application.DataAccess.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("paid_at");
 
+                    b.Property<int>("PickupPointId")
+                        .HasColumnType("integer")
+                        .HasColumnName("pickup_point_id");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("status");
 
-                    b.Property<decimal>("TotalPrice")
-                        .HasColumnType("numeric(10,2)")
-                        .HasColumnName("total_price");
-
                     b.Property<int>("UserId")
                         .HasColumnType("integer")
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PickupPointId");
 
                     b.HasIndex("Status");
 
@@ -140,7 +142,7 @@ namespace Backend.Application.DataAccess.Migrations
                     b.ToTable("orders", (string)null);
                 });
 
-            modelBuilder.Entity("Backend.Domain.Models.OrderedProduct", b =>
+            modelBuilder.Entity("Backend.Domain.Models.OrderPosition", b =>
                 {
                     b.Property<int>("OrderId")
                         .HasColumnType("integer")
@@ -150,9 +152,19 @@ namespace Backend.Application.DataAccess.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("product_id");
 
-                    b.Property<decimal>("ProductPrice")
+                    b.Property<DateTime>("DeliveryDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("delivery_date");
+
+                    b.Property<byte>("DiscountPercent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("smallint")
+                        .HasDefaultValue((byte)0)
+                        .HasColumnName("discount_percent");
+
+                    b.Property<decimal>("Price")
                         .HasColumnType("numeric(10,2)")
-                        .HasColumnName("product_price");
+                        .HasColumnName("price");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("integer")
@@ -164,7 +176,7 @@ namespace Backend.Application.DataAccess.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ordered_products", (string)null);
+                    b.ToTable("order_positions", (string)null);
                 });
 
             modelBuilder.Entity("Backend.Domain.Models.PickupPoint", b =>
@@ -302,6 +314,47 @@ namespace Backend.Application.DataAccess.Migrations
                     b.ToTable("product_images", (string)null);
                 });
 
+            modelBuilder.Entity("Backend.Domain.Models.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<bool>("IsRevoked")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_revoked");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("token");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("refresh_token", (string)null);
+                });
+
             modelBuilder.Entity("Backend.Domain.Models.Review", b =>
                 {
                     b.Property<int>("Id")
@@ -403,6 +456,12 @@ namespace Backend.Application.DataAccess.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("login");
 
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone_number");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
@@ -436,39 +495,27 @@ namespace Backend.Application.DataAccess.Migrations
                     b.ToTable("user_pickup_points", (string)null);
                 });
 
-            modelBuilder.Entity("Backend.Domain.Models.UserSession", b =>
+            modelBuilder.Entity("Backend.Domain.Models.WishedProduct", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("WishlistId")
                         .HasColumnType("integer")
-                        .HasColumnName("id");
+                        .HasColumnName("wishlist_id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("OrderId")
+                    b.Property<int>("ProductId")
                         .HasColumnType("integer")
-                        .HasColumnName("order_id");
+                        .HasColumnName("product_id");
 
-                    b.Property<string>("UId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("uid");
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer")
-                        .HasColumnName("user_id");
+                    b.HasKey("WishlistId", "ProductId");
 
-                    b.HasKey("Id");
+                    b.HasIndex("ProductId");
 
-                    b.HasIndex("OrderId")
-                        .IsUnique();
+                    b.HasIndex("WishlistId");
 
-                    b.HasIndex("UId")
-                        .IsUnique();
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("user_sessions", (string)null);
+                    b.ToTable("wished_products", (string)null);
                 });
 
             modelBuilder.Entity("Backend.Domain.Models.Wishlist", b =>
@@ -492,29 +539,6 @@ namespace Backend.Application.DataAccess.Migrations
                     b.ToTable("wishlists", (string)null);
                 });
 
-            modelBuilder.Entity("Backend.Domain.Models.WishlistItem", b =>
-                {
-                    b.Property<int>("WishlistId")
-                        .HasColumnType("integer")
-                        .HasColumnName("wishlist_id");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("integer")
-                        .HasColumnName("product_id");
-
-                    b.Property<DateTime>("AddedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("added_at");
-
-                    b.HasKey("WishlistId", "ProductId");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("WishlistId");
-
-                    b.ToTable("wishlist_items", (string)null);
-                });
-
             modelBuilder.Entity("Backend.Domain.Models.Cart", b =>
                 {
                     b.HasOne("Backend.Domain.Models.User", "User")
@@ -526,7 +550,7 @@ namespace Backend.Application.DataAccess.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Backend.Domain.Models.CartItem", b =>
+            modelBuilder.Entity("Backend.Domain.Models.CartPosition", b =>
                 {
                     b.HasOne("Backend.Domain.Models.Cart", "Cart")
                         .WithMany("CartItems")
@@ -547,25 +571,33 @@ namespace Backend.Application.DataAccess.Migrations
 
             modelBuilder.Entity("Backend.Domain.Models.Order", b =>
                 {
+                    b.HasOne("Backend.Domain.Models.PickupPoint", "PickupPoint")
+                        .WithMany("Orders")
+                        .HasForeignKey("PickupPointId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Backend.Domain.Models.User", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("PickupPoint");
+
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Backend.Domain.Models.OrderedProduct", b =>
+            modelBuilder.Entity("Backend.Domain.Models.OrderPosition", b =>
                 {
                     b.HasOne("Backend.Domain.Models.Order", "Order")
-                        .WithMany("OrderedProducts")
+                        .WithMany("OrderPositions")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Backend.Domain.Models.Product", "Product")
-                        .WithMany("OrderedProducts")
+                        .WithMany("OrderPositions")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -603,6 +635,17 @@ namespace Backend.Application.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Backend.Domain.Models.RefreshToken", b =>
+                {
+                    b.HasOne("Backend.Domain.Models.User", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Backend.Domain.Models.Review", b =>
@@ -643,39 +686,10 @@ namespace Backend.Application.DataAccess.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Backend.Domain.Models.UserSession", b =>
-                {
-                    b.HasOne("Backend.Domain.Models.Order", "PendingOrder")
-                        .WithOne("UserSession")
-                        .HasForeignKey("Backend.Domain.Models.UserSession", "OrderId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Backend.Domain.Models.User", "User")
-                        .WithMany("UserSessions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PendingOrder");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Backend.Domain.Models.Wishlist", b =>
-                {
-                    b.HasOne("Backend.Domain.Models.User", "User")
-                        .WithOne("Wishlist")
-                        .HasForeignKey("Backend.Domain.Models.Wishlist", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Backend.Domain.Models.WishlistItem", b =>
+            modelBuilder.Entity("Backend.Domain.Models.WishedProduct", b =>
                 {
                     b.HasOne("Backend.Domain.Models.Product", "Product")
-                        .WithMany("WishlistItems")
+                        .WithMany("WishedProducts")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -691,6 +705,17 @@ namespace Backend.Application.DataAccess.Migrations
                     b.Navigation("Wishlist");
                 });
 
+            modelBuilder.Entity("Backend.Domain.Models.Wishlist", b =>
+                {
+                    b.HasOne("Backend.Domain.Models.User", "User")
+                        .WithOne("Wishlist")
+                        .HasForeignKey("Backend.Domain.Models.Wishlist", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Backend.Domain.Models.Cart", b =>
                 {
                     b.Navigation("CartItems");
@@ -703,13 +728,13 @@ namespace Backend.Application.DataAccess.Migrations
 
             modelBuilder.Entity("Backend.Domain.Models.Order", b =>
                 {
-                    b.Navigation("OrderedProducts");
-
-                    b.Navigation("UserSession");
+                    b.Navigation("OrderPositions");
                 });
 
             modelBuilder.Entity("Backend.Domain.Models.PickupPoint", b =>
                 {
+                    b.Navigation("Orders");
+
                     b.Navigation("UserPickupPoints");
                 });
 
@@ -717,13 +742,13 @@ namespace Backend.Application.DataAccess.Migrations
                 {
                     b.Navigation("CartItems");
 
-                    b.Navigation("OrderedProducts");
+                    b.Navigation("OrderPositions");
 
                     b.Navigation("ProductImages");
 
                     b.Navigation("Reviews");
 
-                    b.Navigation("WishlistItems");
+                    b.Navigation("WishedProducts");
                 });
 
             modelBuilder.Entity("Backend.Domain.Models.Seller", b =>
@@ -738,11 +763,11 @@ namespace Backend.Application.DataAccess.Migrations
 
                     b.Navigation("Orders");
 
+                    b.Navigation("RefreshTokens");
+
                     b.Navigation("Reviews");
 
                     b.Navigation("UserPickupPoints");
-
-                    b.Navigation("UserSessions");
 
                     b.Navigation("Wishlist")
                         .IsRequired();

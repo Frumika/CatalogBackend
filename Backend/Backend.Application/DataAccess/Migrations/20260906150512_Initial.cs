@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Backend.DataAccess.Postgres.Migrations
+namespace Backend.Application.DataAccess.Migrations
 {
     /// <inheritdoc />
     public partial class Initial : Migration
@@ -64,8 +64,11 @@ namespace Backend.DataAccess.Postgres.Migrations
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     login = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    hash_password = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false)
+                    phone_number = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    last_login_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -129,17 +132,46 @@ namespace Backend.DataAccess.Postgres.Migrations
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    total_price = table.Column<decimal>(type: "numeric(10,2)", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     deletion_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     paid_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    user_id = table.Column<int>(type: "integer", nullable: false)
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    pickup_point_id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_orders", x => x.id);
                     table.ForeignKey(
+                        name: "FK_orders_pickup_points_pickup_point_id",
+                        column: x => x.pickup_point_id,
+                        principalTable: "pickup_points",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_orders_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "refresh_token",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    token = table.Column<string>(type: "text", nullable: false),
+                    expires_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    is_revoked = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    user_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_refresh_token", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_refresh_token_users_user_id",
                         column: x => x.user_id,
                         principalTable: "users",
                         principalColumn: "id",
@@ -243,7 +275,7 @@ namespace Backend.DataAccess.Postgres.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "cart_items",
+                name: "cart_positions",
                 columns: table => new
                 {
                     cart_id = table.Column<int>(type: "integer", nullable: false),
@@ -253,15 +285,15 @@ namespace Backend.DataAccess.Postgres.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_cart_items", x => new { x.cart_id, x.product_id });
+                    table.PrimaryKey("PK_cart_positions", x => new { x.cart_id, x.product_id });
                     table.ForeignKey(
-                        name: "FK_cart_items_carts_cart_id",
+                        name: "FK_cart_positions_carts_cart_id",
                         column: x => x.cart_id,
                         principalTable: "carts",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_cart_items_products_product_id",
+                        name: "FK_cart_positions_products_product_id",
                         column: x => x.product_id,
                         principalTable: "products",
                         principalColumn: "id",
@@ -269,25 +301,27 @@ namespace Backend.DataAccess.Postgres.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ordered_products",
+                name: "order_positions",
                 columns: table => new
                 {
                     order_id = table.Column<int>(type: "integer", nullable: false),
                     product_id = table.Column<int>(type: "integer", nullable: false),
                     quantity = table.Column<int>(type: "integer", nullable: false),
-                    product_price = table.Column<decimal>(type: "numeric(10,2)", nullable: false)
+                    discount_percent = table.Column<byte>(type: "smallint", nullable: false, defaultValue: (byte)0),
+                    price = table.Column<decimal>(type: "numeric(10,2)", nullable: false),
+                    delivery_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ordered_products", x => new { x.order_id, x.product_id });
+                    table.PrimaryKey("PK_order_positions", x => new { x.order_id, x.product_id });
                     table.ForeignKey(
-                        name: "FK_ordered_products_orders_order_id",
+                        name: "FK_order_positions_orders_order_id",
                         column: x => x.order_id,
                         principalTable: "orders",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ordered_products_products_product_id",
+                        name: "FK_order_positions_products_product_id",
                         column: x => x.product_id,
                         principalTable: "products",
                         principalColumn: "id",
@@ -295,34 +329,7 @@ namespace Backend.DataAccess.Postgres.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "user_sessions",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    uid = table.Column<string>(type: "text", nullable: false),
-                    user_id = table.Column<int>(type: "integer", nullable: false),
-                    order_id = table.Column<int>(type: "integer", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_user_sessions", x => x.id);
-                    table.ForeignKey(
-                        name: "FK_user_sessions_orders_order_id",
-                        column: x => x.order_id,
-                        principalTable: "orders",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_user_sessions_users_user_id",
-                        column: x => x.user_id,
-                        principalTable: "users",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "wishlist_items",
+                name: "wished_products",
                 columns: table => new
                 {
                     wishlist_id = table.Column<int>(type: "integer", nullable: false),
@@ -331,15 +338,15 @@ namespace Backend.DataAccess.Postgres.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_wishlist_items", x => new { x.wishlist_id, x.product_id });
+                    table.PrimaryKey("PK_wished_products", x => new { x.wishlist_id, x.product_id });
                     table.ForeignKey(
-                        name: "FK_wishlist_items_products_product_id",
+                        name: "FK_wished_products_products_product_id",
                         column: x => x.product_id,
                         principalTable: "products",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_wishlist_items_wishlists_wishlist_id",
+                        name: "FK_wished_products_wishlists_wishlist_id",
                         column: x => x.wishlist_id,
                         principalTable: "wishlists",
                         principalColumn: "id",
@@ -347,13 +354,13 @@ namespace Backend.DataAccess.Postgres.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_cart_items_cart_id",
-                table: "cart_items",
+                name: "IX_cart_positions_cart_id",
+                table: "cart_positions",
                 column: "cart_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_cart_items_product_id",
-                table: "cart_items",
+                name: "IX_cart_positions_product_id",
+                table: "cart_positions",
                 column: "product_id");
 
             migrationBuilder.CreateIndex(
@@ -369,14 +376,19 @@ namespace Backend.DataAccess.Postgres.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ordered_products_order_id",
-                table: "ordered_products",
+                name: "IX_order_positions_order_id",
+                table: "order_positions",
                 column: "order_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ordered_products_product_id",
-                table: "ordered_products",
+                name: "IX_order_positions_product_id",
+                table: "order_positions",
                 column: "product_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_orders_pickup_point_id",
+                table: "orders",
+                column: "pickup_point_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_orders_status",
@@ -410,6 +422,16 @@ namespace Backend.DataAccess.Postgres.Migrations
                 column: "maker_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_refresh_token_token",
+                table: "refresh_token",
+                column: "token");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_refresh_token_user_id",
+                table: "refresh_token",
+                column: "user_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_reviews_product_id",
                 table: "reviews",
                 column: "product_id");
@@ -437,36 +459,19 @@ namespace Backend.DataAccess.Postgres.Migrations
                 column: "pickup_point_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_user_sessions_order_id",
-                table: "user_sessions",
-                column: "order_id",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_user_sessions_uid",
-                table: "user_sessions",
-                column: "uid",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_user_sessions_user_id",
-                table: "user_sessions",
-                column: "user_id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_users_login",
+                name: "IX_users_email",
                 table: "users",
-                column: "login",
+                column: "email",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_wishlist_items_product_id",
-                table: "wishlist_items",
+                name: "IX_wished_products_product_id",
+                table: "wished_products",
                 column: "product_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_wishlist_items_wishlist_id",
-                table: "wishlist_items",
+                name: "IX_wished_products_wishlist_id",
+                table: "wished_products",
                 column: "wishlist_id");
 
             migrationBuilder.CreateIndex(
@@ -480,13 +485,16 @@ namespace Backend.DataAccess.Postgres.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "cart_items");
+                name: "cart_positions");
 
             migrationBuilder.DropTable(
-                name: "ordered_products");
+                name: "order_positions");
 
             migrationBuilder.DropTable(
                 name: "product_images");
+
+            migrationBuilder.DropTable(
+                name: "refresh_token");
 
             migrationBuilder.DropTable(
                 name: "reviews");
@@ -495,16 +503,10 @@ namespace Backend.DataAccess.Postgres.Migrations
                 name: "user_pickup_points");
 
             migrationBuilder.DropTable(
-                name: "user_sessions");
-
-            migrationBuilder.DropTable(
-                name: "wishlist_items");
+                name: "wished_products");
 
             migrationBuilder.DropTable(
                 name: "carts");
-
-            migrationBuilder.DropTable(
-                name: "pickup_points");
 
             migrationBuilder.DropTable(
                 name: "orders");
@@ -514,6 +516,9 @@ namespace Backend.DataAccess.Postgres.Migrations
 
             migrationBuilder.DropTable(
                 name: "wishlists");
+
+            migrationBuilder.DropTable(
+                name: "pickup_points");
 
             migrationBuilder.DropTable(
                 name: "categories");
