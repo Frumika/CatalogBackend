@@ -1,52 +1,51 @@
-import {useState} from "react";
 import {ApiError, toApiError} from "@/shared/api";
 import {cartApi, useApplyCartPositionUpdate, useClearCartState} from "@/entities/cart";
+import {useNotify} from "@/shared/lib";
 
 
 export const useCartActions = () => {
     const applyPositionUpdate = useApplyCartPositionUpdate();
     const clearCartState = useClearCartState();
-
-    const [error, setError] = useState<ApiError | null>(null);
+    const notify = useNotify();
 
 
     const addProduct = async (productId: number) => {
-        setError(null);
         try {
             const position = await cartApi.addProduct(productId);
             applyPositionUpdate(position);
         } catch (error) {
-            setError(toApiError(error));
+            const apiError: ApiError = toApiError(error);
+            notify("error", apiError.message || "Не удалось добавить товар в корзину");
         }
     };
 
     const updateQuantity = async (productId: number, quantity: number) => {
-        setError(null);
         try {
             const position = await cartApi.updateQuantity(productId, quantity);
             applyPositionUpdate(position);
         } catch (error) {
-            setError(toApiError(error));
+            const apiError: ApiError = toApiError(error);
+            notify("error", apiError.message || "Не удалось обновить количество товара");
         }
     };
 
     const removePosition = async (productId: number) => {
-        setError(null);
         try {
             const position = await cartApi.removeItem(productId);
             applyPositionUpdate(position);
         } catch (error) {
-            setError(toApiError(error));
+            const apiError: ApiError = toApiError(error);
+            notify("error", apiError.message || "Не удалось удалить товар из корзины");
         }
     };
 
     const clearCart = async () => {
-        setError(null);
         try {
             await cartApi.clearCart();
             clearCartState();
         } catch (error) {
-            setError(toApiError(error));
+            const apiError: ApiError = toApiError(error);
+            notify("error", apiError.message || "Не удалось очистить корзину");
         }
     };
 
@@ -54,7 +53,6 @@ export const useCartActions = () => {
         addProduct,
         updateQuantity,
         removePosition,
-        clearCart,
-        error
+        clearCart
     };
 };

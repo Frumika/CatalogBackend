@@ -2,6 +2,7 @@ import styles from "./NotificationContainer.module.css";
 import {Notification} from "@/shared/ui/notification"
 import {type NotificationType, useGetNotifications, useRemoveNotification} from "@/shared/lib";
 import {useEffect, useState} from "react";
+import {createPortal} from "react-dom";
 
 
 interface WrapperProps {
@@ -51,7 +52,7 @@ export const NotificationContainer = () => {
 
     const visibleNotifications = [...notifications].reverse().slice(0, MAX_NOTIFICATIONS);
 
-    return (
+    return createPortal(
         <div className={styles.notificationContainer}
              onMouseEnter={() => setIsGroupHovered(true)}
              onMouseLeave={() => setIsGroupHovered(false)}
@@ -66,6 +67,6 @@ export const NotificationContainer = () => {
                     onClose={() => removeNotification(notification.id)}
                 />
             ))}
-        </div>
+        </div>, document.body
     );
 };

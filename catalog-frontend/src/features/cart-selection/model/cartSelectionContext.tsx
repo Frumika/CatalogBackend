@@ -1,6 +1,7 @@
 import {createContext, type ReactNode, useContext} from "react";
 import type {CartPosition} from "@/entities/cart";
 import {useCartSelection} from "./useCartSelection.ts";
+import {useNotify} from "@/shared/lib";
 
 
 type CartSelectionContextType = ReturnType<typeof useCartSelection>;
@@ -29,8 +30,10 @@ export const CartSelectionProvider = (
 
 export const useCartSelectionContext = () => {
     const context = useContext(CartSelectionContext);
+    const notify = useNotify();
+
     if (!context) {
-        throw new Error('useCartSelectionContext must be used within CartSelectionProvider');
+        notify("error", "Что-то пошло не так");
     }
     return context;
 };

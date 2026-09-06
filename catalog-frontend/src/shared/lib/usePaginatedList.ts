@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {ApiError, toApiError, type PagedResult} from '../api';
+import {useNotify} from "@/shared/lib/useNotificationStore.ts";
 
 
 type FetchPage<T> = (page: number, pageSize: number) => Promise<PagedResult<T>>;
@@ -7,7 +8,6 @@ type FetchPage<T> = (page: number, pageSize: number) => Promise<PagedResult<T>>;
 interface UsePaginatedListResult<T> {
     items: T[];
     isLoading: boolean;
-    error: ApiError | null;
     hasMore: boolean;
     loadMore: () => void;
 }
@@ -18,8 +18,8 @@ export const usePaginatedList = <T>(
 ): UsePaginatedListResult<T> => {
     const [items, setItems] = useState<T[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<ApiError | null>(null);
     const [hasMore, setHasMore] = useState(true);
+    const notify = useNotify();
 
     const pageRef = useRef(1);
     const requestIdRef = useRef(0);
@@ -32,7 +32,6 @@ export const usePaginatedList = <T>(
         const requestId = ++requestIdRef.current;
 
         setIsLoading(true);
-        setError(null);
 
         try {
             const result = await fetchPage(page, pageSize);
@@ -43,9 +42,10 @@ export const usePaginatedList = <T>(
             const loadedCount = page * pageSize;
             setHasMore(loadedCount < result.totalCount);
             pageRef.current = page;
-        } catch (err) {
+        } catch (error) {
             if (requestId === requestIdRef.current) {
-                setError(toApiError(err));
+                const apiError: ApiError = toApiError(error);
+                notify("error", apiError.message || "Не удалось загрузить товары");
             }
         } finally {
             if (requestId === requestIdRef.current) {
@@ -68,5 +68,5 @@ export const usePaginatedList = <T>(
         void load(pageRef.current + 1, false);
     }, [hasMore, load]);
 
-    return {items, isLoading, error, hasMore, loadMore};
+    return {items, isLoading, hasMore, loadMore};
 };

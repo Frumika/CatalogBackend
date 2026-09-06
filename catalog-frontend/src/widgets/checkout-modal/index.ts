@@ -1,1 +1,1 @@
-export {CheckoutModal} from "./CheckoutModal";
+export {CheckoutModal} from "./ui/CheckoutModal.tsx";

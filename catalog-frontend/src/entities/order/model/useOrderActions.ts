@@ -1,15 +1,17 @@
-import {useState} from "react";
 import {ApiError, toApiError} from "@/shared/api";
 import {orderApi} from "@/entities/order/api/orderApi.ts";
+import {useNotify} from "@/shared/lib";
 
 
 export const useOrderActions = () => {
+    const notify = useNotify();
 
     const getOrderById = async (orderId: number) => {
         try {
             return await orderApi.getById(orderId);
         } catch (error) {
-            throw toApiError(error);
+            const apiError: ApiError = toApiError(error);
+            notify("error", apiError.message || "Не удалось получить информацию о заказе");
         }
     };
 
@@ -17,7 +19,8 @@ export const useOrderActions = () => {
         try {
             return await orderApi.makeOrder(productIds, pickupPointId);
         } catch (error) {
-            throw toApiError(error);
+            const apiError: ApiError = toApiError(error);
+            notify("error", apiError.message || "Не удалось создать заказ");
         }
     };
 
@@ -25,7 +28,8 @@ export const useOrderActions = () => {
         try {
             return await orderApi.payOrder(orderId);
         } catch (error) {
-            throw toApiError(error);
+            const apiError: ApiError = toApiError(error);
+            notify("error", apiError.message || "Не удалось оплатить заказ");
         }
     }
 
@@ -33,7 +37,8 @@ export const useOrderActions = () => {
         try {
             await orderApi.cancelOrder(orderId);
         } catch (error) {
-            throw toApiError(error);
+            const apiError: ApiError = toApiError(error);
+            notify("error", apiError.message || "Не удалось отменить заказ");
         }
     }
 

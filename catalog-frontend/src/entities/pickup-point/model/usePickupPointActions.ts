@@ -5,9 +5,9 @@ import {
     useSelectPickupPoint,
     useSetPickupPoints
 } from "@/entities/pickup-point";
-import {useState} from "react";
 import {ApiError, toApiError} from "@/shared/api";
 import {pickupPointApi} from "@/entities/pickup-point/api/pickupPointApi.ts";
+import {useNotify} from "@/shared/lib";
 
 
 export const usePickupPointActions = () => {
@@ -15,8 +15,8 @@ export const usePickupPointActions = () => {
     const selectPickupPointInStore = useSelectPickupPoint();
     const removePickupPointInStore = useRemovePickupPoint();
     const currentPickupPoints = usePickupPoints();
+    const notify = useNotify();
 
-    const [error, setError] = useState<ApiError | null>(null);
 
     const selectPickupPoint = async (pickupPoint: PickupPoint) => {
         const previous = currentPickupPoints;
@@ -26,7 +26,8 @@ export const usePickupPointActions = () => {
             const updated = await pickupPointApi.select(pickupPoint.id);
             selectPickupPointInStore(updated);
         } catch (error) {
-            setError(toApiError(error));
+            const apiError: ApiError = toApiError(error);
+            notify("error", apiError.message || "Не удалось выбрать ПВЗ");
             setPickupPoints(previous);
         }
     };
@@ -38,10 +39,11 @@ export const usePickupPointActions = () => {
         try {
             await pickupPointApi.remove(pickupPoint.id);
         } catch (error) {
-            setError(toApiError(error));
+            const apiError: ApiError = toApiError(error);
+            notify("error", apiError.message || "Не удалось удалить ПВЗ");
             setPickupPoints(previous);
         }
     };
 
-    return {selectPickupPoint, removePickupPoint, error};
+    return {selectPickupPoint, removePickupPoint};
 };

@@ -3,13 +3,14 @@ import type {CartPosition} from "./types.ts";
 import {useCartPositions} from "@/entities/cart";
 import {cartApi} from "../api/cartApi.ts";
 import {ApiError, toApiError} from "@/shared/api";
+import {useNotify} from "@/shared/lib";
 
 
 export const useExtendedCartPositions = (isAuthenticated: boolean) => {
     const globalPositions = useCartPositions();
     const [localPositions, setLocalPositions] = useState<CartPosition[]>([]);
-    const [error, setError] = useState<ApiError | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const notify = useNotify();
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -20,7 +21,10 @@ export const useExtendedCartPositions = (isAuthenticated: boolean) => {
         setIsLoading(true);
         cartApi.getCartPositions()
             .then(response => setLocalPositions(response.items))
-            .catch(error => setError(toApiError(error)))
+            .catch(error => {
+                const apiError: ApiError = toApiError(error);
+                notify("error", apiError.message || "Не удалось получить корзину пользователя");
+            })
             .finally(() => setIsLoading(false));
     }, [isAuthenticated]);
 
@@ -37,6 +41,5 @@ export const useExtendedCartPositions = (isAuthenticated: boolean) => {
     return {
         cartPositions,
         isLoading,
-        error,
     };
 };

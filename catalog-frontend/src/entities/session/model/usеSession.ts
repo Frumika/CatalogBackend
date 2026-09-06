@@ -1,25 +1,28 @@
-import { useState} from "react";
+import {useState} from "react";
 import {sessionApi} from "../api/sessionApi.ts";
 import {ApiError, tokenLocalStorage, toApiError} from "@/shared/api";
 import {useClearSession, useSetTokens} from "./sessionStore.ts";
+import {useNotify} from "@/shared/lib";
 
 
 export const useSession = () => {
     const setTokens = useSetTokens();
     const clearSession = useClearSession();
+    const notify = useNotify();
 
     const [isCodeSend, setCodeSend] = useState(false);
     const [isLoading, setLoading] = useState(false);
-    const [error, setError] = useState<ApiError | null>(null);
+
 
     const sendCode = async (email: string): Promise<void> => {
-        setError(null);
         setCodeSend(true);
         setLoading(true);
         try {
             await sessionApi.sendCode(email);
-        } catch (err) {
-            setError(toApiError(err));
+        } catch (error) {
+            const apiError: ApiError = toApiError(error);
+            notify("error", apiError.message || "Не удалось отправить код");
+
             setCodeSend(false);
         } finally {
             setLoading(false);
@@ -27,14 +30,14 @@ export const useSession = () => {
     };
 
     const verify = async (email: string, code: string): Promise<void> => {
-        setError(null);
         setLoading(true);
         try {
             const tokens = await sessionApi.verify(email, code);
             setTokens(tokens.accessToken, tokens.refreshToken);
             setCodeSend(false);
         } catch (err) {
-            setError(toApiError(err));
+            const apiError: ApiError = toApiError(err);
+            notify("error", apiError.message || "Не удалось верифицировать код");
         } finally {
             setLoading(false);
         }
@@ -51,7 +54,8 @@ export const useSession = () => {
         try {
             await sessionApi.logout(refreshToken);
         } catch (err) {
-            setError(toApiError(err));
+            const apiError: ApiError = toApiError(err);
+            notify("error", apiError.message || "Не удалось выйти из сессии");
         } finally {
             clearSession();
             setCodeSend(false);
@@ -64,7 +68,8 @@ export const useSession = () => {
         try {
             await sessionApi.logoutAll();
         } catch (err) {
-            setError(toApiError(err));
+            const apiError: ApiError = toApiError(err);
+            notify("error", apiError.message || "Не удалось выйти из всех сессий");
         } finally {
             clearSession();
             setCodeSend(false);
@@ -75,7 +80,6 @@ export const useSession = () => {
     return {
         isCodeSend,
         isLoading,
-        error,
         sendCode,
         verify,
         logout,
