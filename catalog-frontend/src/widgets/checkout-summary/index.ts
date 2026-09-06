@@ -1,1 +1,0 @@
-export {CheckoutSummary} from "./ui/CheckoutSummary";

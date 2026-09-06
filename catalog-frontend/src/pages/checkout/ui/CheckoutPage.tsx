@@ -1,13 +1,14 @@
 import styles from "./CheckoutPage.module.css";
 import {type ExtendedOrder, type OrderPositionGroup, useGetCheckoutOrderId, useOrderActions} from "@/entities/order";
-import {useEffect, useState} from "react";import {Footer} from "@/widgets/footer";
-import {CheckoutList} from "@/widgets/checkout-list";
+import {useEffect, useState} from "react";
+import {Footer} from "@/widgets/footer";
+import {CheckoutList} from "./checkout-list/CheckoutList.tsx";
 import {ContentContainer} from "@/shared/ui/content-container";
-import {CheckoutSummary} from "@/widgets/checkout-summary";
+import {CheckoutSummary} from "./checkout-summary/CheckoutSummary.tsx";
 import {CheckoutHeader} from "./checkout-header/CheckoutHeader.tsx";
 import {DeliveryType} from "./delivery-type/DeliveryType.tsx";
 import {PageLabel} from "@/shared/ui/page-label";
-import {CheckoutModal} from "@/widgets/checkout-modal";
+import {CheckoutModal} from "./checkout-modal/CheckoutModal.tsx";
 import {useDisclosure, useNotify} from "@/shared/lib";
 import {useNavigate} from "react-router-dom";
 
